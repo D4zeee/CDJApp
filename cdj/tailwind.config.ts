@@ -11,6 +11,14 @@ export default {
   theme: {
     extend: {
       colors: {
+        // CDJ Custom Color Palette
+        'cdj-white': '#FFFFFF',
+        'cdj-light-gray': '#FCFCFC',
+        'cdj-medium-gray': '#919191',
+        'cdj-dark-gray': '#323232',
+        'cdj-black': '#000000',
+        
+        // Shadcn/ui colors (keeping for compatibility)
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

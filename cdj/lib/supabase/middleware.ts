@@ -47,15 +47,46 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Check if user is authenticated and is an admin
+  let isAdmin = false;
+  if (user) {
+    try {
+      // Check if user is an admin directly
+      const { data: adminUser } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('id', user.sub)
+        .single();
+      isAdmin = !!adminUser;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  }
+
+  // Define public routes that don't require authentication
+  const publicRoutes = ['/login', '/auth/login', '/auth/error'];
+  const isPublicRoute = publicRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  );
+
+  // Redirect to login if not authenticated and not on a public route
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect to dashboard if authenticated and on login page
+  if (user && isAdmin && request.nextUrl.pathname === "/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect to login if user is not an admin (even if authenticated)
+  if (user && !isAdmin && !isPublicRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
