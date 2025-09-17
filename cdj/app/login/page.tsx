@@ -58,14 +58,12 @@ export default function LoginPage() {
       }
 
         if (data.user) {
-          // Check if user is an admin directly
-          const { data: adminUser, error: adminError } = await supabase
-            .from("admin_users")
-            .select("id, username")
-            .eq("id", data.user.id)
-            .single()
+          // Check if user is an admin using the database function
+          const { data: isAdmin, error: adminError } = await supabase
+            .rpc('is_current_user_admin')
+            .single();
 
-          if (adminError || !adminUser) {
+          if (adminError || !isAdmin) {
             throw new Error("Access denied. Admin privileges required.")
           }
 

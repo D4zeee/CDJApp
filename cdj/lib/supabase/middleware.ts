@@ -51,15 +51,15 @@ export async function updateSession(request: NextRequest) {
   let isAdmin = false;
   if (user) {
     try {
-      // Check if user is an admin directly
-      const { data: adminUser } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', user.sub)
+      // Use the efficient database function to check admin status
+      const { data: adminCheck, error: adminError } = await supabase
+        .rpc('is_current_user_admin')
         .single();
-      isAdmin = !!adminUser;
+      
+      isAdmin = !adminError && adminCheck === true;
     } catch (error) {
       console.error('Error checking admin status:', error);
+      isAdmin = false;
     }
   }
 
